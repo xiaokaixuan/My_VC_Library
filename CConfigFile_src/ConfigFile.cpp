@@ -6,7 +6,7 @@
 #pragma comment(lib, "Shlwapi.lib")
 
 
-#define _MAX_SITE	4096
+#define _KEY_SIZE	4096
 #define _SEC_SIZE	(4*1024*1024)
 
 inline LPCTSTR c_str(const _tstring &str)
@@ -62,11 +62,11 @@ BOOL CConfigFile::GetSection(LPCTSTR lpAppName, MapStringToString& mapStrToStr)
 		if (pChar)
 		{
 			int nMaxLen = int(pChar - pStr) + 1;
-			TCHAR szKey[_MAX_SITE] = { 0 };
-			TCHAR szVal[_MAX_SITE] = { 0 };
-			::lstrcpyn(szKey, pStr, nMaxLen > _MAX_SITE ? _MAX_SITE : nMaxLen);
+			TCHAR szKey[_KEY_SIZE] = { 0 };
+			TCHAR szVal[_KEY_SIZE] = { 0 };
+			::lstrcpyn(szKey, pStr, nMaxLen > _KEY_SIZE ? _KEY_SIZE : nMaxLen);
 			pChar += 1;
-			::lstrcpyn(szVal, pChar, _MAX_SITE);
+			::lstrcpyn(szVal, pChar, _KEY_SIZE);
 			::StrTrim(szKey, _T(" \t\n"));
 			::StrTrim(szVal, _T(" \t\n"));
 			mapStrToStr[szKey] = szVal;
@@ -85,8 +85,8 @@ int CConfigFile::GetKeyInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int nDefault)
 float CConfigFile::GetKeyFloat(LPCTSTR lpAppName, LPCTSTR lpKeyName, float fDefault)
 {
 	float fRet(fDefault);
-	TCHAR szStr[_MAX_SITE] = { 0 };
-	::GetPrivateProfileString(lpAppName, lpKeyName, _T(""), szStr, _MAX_SITE, c_str(m_strIni));
+	TCHAR szStr[_KEY_SIZE] = { 0 };
+	::GetPrivateProfileString(lpAppName, lpKeyName, _T(""), szStr, _KEY_SIZE, c_str(m_strIni));
 	if (_stscanf(szStr, _T("%f"), &fRet) < 1)
 	{
 		fRet = fDefault;
@@ -97,8 +97,8 @@ float CConfigFile::GetKeyFloat(LPCTSTR lpAppName, LPCTSTR lpKeyName, float fDefa
 DWORD CConfigFile::GetKeyString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, _tstring& strVal)
 {
 	DWORD dwRet(FALSE);
-	TCHAR szString[_MAX_SITE] = { 0 };
-	dwRet = ::GetPrivateProfileString(lpAppName, lpKeyName, lpDefault, szString, _MAX_SITE, c_str(m_strIni));
+	TCHAR szString[_KEY_SIZE] = { 0 };
+	dwRet = ::GetPrivateProfileString(lpAppName, lpKeyName, lpDefault, szString, _KEY_SIZE, c_str(m_strIni));
 	if (dwRet > 0)
 	{
 		strVal = szString;
@@ -117,11 +117,11 @@ BOOL CConfigFile::WriteSection(LPCTSTR lpAppName, MapStringToString& mapStrToStr
 	DWORD dwSize(0);
 	for (MapStringToString::iterator i = mapStrToStr.begin(); i != mapStrToStr.end(); ++i)
 	{
-		dwSize += length(i->first) + length(i->second) + 2;
+		dwSize += length(i->first) + length(i->second) + 2; // '=' and '\0'
 	}
 	if (dwSize > 0)
 	{
-		dwSize += 1;
+		dwSize += 1; // "\0\0" end
 
 		LPTSTR szData = new TCHAR[dwSize];
 		ZeroMemory(szData, dwSize * sizeof(TCHAR));
@@ -181,8 +181,8 @@ BOOL CConfigFile::GetStringArray(LPCTSTR lpAppName, StringArray& arrayString)
 	for (LPTSTR pStr(pString); pStr < pString + dwRet; ++pStr)
 	{
 		DWORD dwLength = ::lstrlen(pStr);
-		TCHAR szLine[_MAX_SITE] = { 0 };
-		::lstrcpyn(szLine, pStr, _MAX_SITE);
+		TCHAR szLine[_KEY_SIZE] = { 0 };
+		::lstrcpyn(szLine, pStr, _KEY_SIZE);
 		pStr += dwLength;
 		arrayString.push_back(szLine);
 	}
