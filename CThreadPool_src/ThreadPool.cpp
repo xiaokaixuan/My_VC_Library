@@ -97,7 +97,7 @@ BOOL CThreadPool::Wait(DWORD dwMilliseconds)
 	DWORD dwTick = GetTickCount();
 	for (;IsBusy();)
 	{
-		Sleep(1);
+		Sleep(20); // minimum granularity 20ms
 		if (GetTickCount() - dwTick > dwMilliseconds)
 		{
 			break;
